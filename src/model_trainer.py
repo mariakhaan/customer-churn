@@ -12,6 +12,7 @@ from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, 
     f1_score, roc_auc_score, confusion_matrix, classification_report
 )
+from sklearn.model_selection import cross_val_score
 from xgboost import XGBClassifier
 import joblib
 import json
@@ -124,6 +125,41 @@ class ModelTrainer:
         print(f"  FN: {cm[1,0]:4d}  TP: {cm[1,1]:4d}")
         
         return metrics
+    def cross_validate_model(
+        self,
+        model_name: str,
+        model: Any,
+        X_train: np.ndarray,
+        y_train: np.ndarray
+    ) -> Dict[str, float]:
+        """
+        Run k-fold cross-validation on training data.
+
+        Args:
+            model_name: Name of the model
+            model: Model instance
+            X_train: Training features
+            y_train: Training labels
+
+        Returns:
+            Dictionary with mean and std of CV scores
+        """
+        n_folds = self.config['training']['cv_folds']
+
+        scores = cross_val_score(
+            model, X_train, y_train,
+            cv=n_folds,
+            scoring=self.config['training']['scoring'],
+            n_jobs=-1  # use all CPU cores
+        )
+
+        cv_results = {
+            'cv_mean': float(scores.mean()),
+            'cv_std': float(scores.std())
+        }
+
+        print(f"  CV ROC-AUC: {scores.mean():.4f} (+/- {scores.std():.4f})")
+        return cv_results
     
     def train_all(
         self,
@@ -147,8 +183,12 @@ class ModelTrainer:
             # Train
             trained_model = self.train_model(model_name, model, X_train, y_train)
             
+            cv_results = self.cross_validate_model(model_name, model, X_train, y_train)
+            
             # Evaluate
             metrics = self.evaluate_model(model_name, trained_model, X_test, y_test)
+
+            metrics.update(cv_results)
             
             # Store results
             self.results[model_name] = metrics
@@ -206,6 +246,7 @@ class ModelTrainer:
         print(f"\n{'='*70}")
         print(f"BEST MODEL: {best_model_name}")
         print(f"ROC-AUC: {best_metrics['roc_auc']:.4f}")
+        print(f"  CV ROC-AUC:    {best_metrics['cv_mean']:.4f} (+/- {best_metrics['cv_std']:.4f})")
         print("="*70)
 
 
