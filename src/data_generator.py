@@ -89,14 +89,14 @@ class ChurnDataGenerator:
         base_prob = 0.1
         
         # Tenure effect (decreases with longer tenure)
-        tenure_factor = np.exp(-tenure / 24) * 0.4
+        tenure_factor = np.exp(-tenure / 12) * 0.5
         
         # Monthly charges effect (increases with higher charges)
         charge_factor = (monthly_charges - 20) / 100 * 0.2
         
         # Contract effect
-        contract_factor = np.where(contract == 'Month-to-month', 0.3,
-                          np.where(contract == 'One year', 0.1, 0.05))
+        contract_factor = np.where(contract == 'Month-to-month', 0.5,
+                          np.where(contract == 'One year', 0.05, 0.0))
         
         # Internet service effect
         internet_factor = np.where(internet_service == 'Fiber optic', 0.15, 0.0)

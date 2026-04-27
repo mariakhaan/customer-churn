@@ -45,7 +45,12 @@ def main():
     
     # Preprocess data
     print("\n[3/4] Preprocessing and feature engineering...")
-    preprocessor = DataPreprocessor(config['data'])
+    preprocessor_config = {
+    **config['preprocessing'],
+    'test_size': config['data']['test_size'],
+    'random_state': config['data']['random_state'],
+    }
+    preprocessor = DataPreprocessor(preprocessor_config)
     X_train, X_test, y_train, y_test = preprocessor.prepare_train_test(
         config['data']['output_path']
     )
@@ -66,7 +71,6 @@ def main():
     print("• View results in: models/metrics.json")
     print("• Run tests: pytest tests/")
     print("• Make predictions: python src/predictor.py")
-    print("• View code on GitHub and add to resume!")
 
 
 if __name__ == "__main__":

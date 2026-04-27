@@ -88,14 +88,14 @@ class DataPreprocessor:
             df_feat['tenure'], 
             bins=[0, 12, 24, 48, 100], 
             labels=['0-1yr', '1-2yr', '2-4yr', '4yr+']
-        ).astype(str)
+        ).astype(object)
         
         # Charge categories
         df_feat['charge_group'] = pd.cut(
             df_feat['monthly_charges'],
             bins=[0, 40, 70, 100, 200],
             labels=['low', 'medium', 'high', 'very_high']
-        ).astype(str)
+        ).astype(object)
         
         # Service engagement score
         df_feat['service_score'] = (
